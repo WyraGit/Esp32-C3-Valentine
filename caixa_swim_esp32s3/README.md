@@ -1,4 +1,4 @@
-# 🎁 Caixa de Presente "Swim" - ESP32-S3
+# 🎁 Caixa de Presente "Swim" - ESP32-S3 / ESP32-C3
 
 Caixa de madeira com trava de metal. Ao **destravar** a caixa, depois de um atraso de **500 ms** (ajustável pelo celular), um **buzzer passivo** toca **"Swim" - BTS** e uma **fita LED RGB** colada nas laterais internas da caixa muda de cor acompanhando o **volume** do som:
 
@@ -7,14 +7,14 @@ volume baixo  ──────────────────────
  VERMELHO → laranja → amarelo → verde → azul → VIOLETA
 ```
 
-Tudo é controlado por um **ESP32-S3**, que também cria um **web server** para alterar o atraso, o volume, o brilho e testar a cena.
+Tudo é controlado por um **ESP32-S3** ou **ESP32-C3**, que também cria um **web server** para alterar o atraso, o volume, o brilho e testar a cena.
 
 ---
 
 ## 📋 Componentes
 
 ✅ **Eletrônicos:**
-- 1x ESP32-S3 (ex.: ESP32-S3-DevKitC-1)
+- 1x ESP32-S3 (ex.: ESP32-S3-DevKitC-1) **ou** ESP32-C3 (ex.: ESP32-C3 SuperMini / DevKitM-1)
 - 1x Buzzer passivo
 - 1x Fita LED RGB comum, **não endereçável** (ex.: 5050), com 4 pinos: **R, G, B, V+** (V+ comum)
 - 3x MOSFET canal N logic-level (IRLZ44N, IRLB8721, AO3400…)
@@ -45,6 +45,19 @@ ESP32-S3
 │ GPIO17 → MOSFET B        │
 └──────────────────────────┘
 ```
+
+### **ESP32-C3 Pinout usado:**
+No ESP32-C3 os GPIO12 a 17 são ligados à memória flash, então a fita usa outros pinos. O código escolhe sozinho conforme a placa selecionada na IDE:
+
+| Função | ESP32-S3 | ESP32-C3 |
+|--------|----------|----------|
+| Trava (contato) | GPIO5 | GPIO5 |
+| Buzzer | GPIO4 | GPIO4 |
+| MOSFET R | GPIO15 | GPIO6 |
+| MOSFET G | GPIO16 | GPIO7 |
+| MOSFET B | GPIO17 | GPIO10 |
+
+> Nos esquemas abaixo, quem usa ESP32-C3 troca GPIO15/16/17 por GPIO6/7/10.
 
 #### 1️⃣ **Trava de metal (detecção de abertura)**
 A própria trava funciona como um interruptor: as duas partes metálicas só se tocam quando a caixa está **travada**.
@@ -155,7 +168,8 @@ Exemplo: `curl -X POST -d "atraso=800&volume=100&brilho=180&ativo=1" http://caix
 ### **Arduino IDE**
 ```
 1. Instale a placa: "esp32 by Espressif Systems" (versão 3.x)
-2. Placa: ESP32S3 Dev Module
+2. Placa: ESP32S3 Dev Module (ou ESP32C3 Dev Module)
+   - ESP32-C3: ative "USB CDC On Boot: Enabled" em Ferramentas para ver o Serial Monitor
 3. Abra caixa_swim_esp32s3/caixa_swim_esp32s3.ino
 4. Compile e carregue (nenhuma biblioteca extra é necessária)
 ```
@@ -167,6 +181,13 @@ platform = espressif32
 board = esp32-s3-devkitc-1
 framework = arduino
 monitor_speed = 115200
+
+[env:esp32-c3-devkitm-1]
+platform = espressif32
+board = esp32-c3-devkitm-1
+framework = arduino
+monitor_speed = 115200
+build_flags = -DARDUINO_USB_MODE=1 -DARDUINO_USB_CDC_ON_BOOT=1
 ```
 > O código usa a API LEDC do Arduino-ESP32 **3.x** (`ledcAttach`, `ledcChangeFrequency`). Use uma versão de `platform` baseada no core 3.x.
 

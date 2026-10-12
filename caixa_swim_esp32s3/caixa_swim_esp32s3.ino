@@ -1,18 +1,19 @@
 /*
- * CAIXA DE PRESENTE "SWIM" - ESP32-S3
+ * CAIXA DE PRESENTE "SWIM" - ESP32-S3 / ESP32-C3
  * Caixa de madeira + Trava de metal + Buzzer Passivo + Fita LED RGB + Web Server
  * Melodia: "Swim" - BTS (arranjo simplificado para buzzer)
  *
  * Funcionamento:
  *  1. A trava de metal funciona como um interruptor: fechada = contato fechado.
- *  2. Ao destravar a caixa, o ESP32-S3 espera o atraso configurado (padrão 500 ms).
+ *  2. Ao destravar a caixa, o ESP32 espera o atraso configurado (padrão 500 ms).
  *  3. O buzzer passivo toca a melodia, com volume (dinâmica) variando nota a nota.
  *  4. A fita LED acompanha o volume do buzzer em tempo real:
  *       volume baixo -> VERMELHO ... volume alto -> VIOLETA
  *  5. O atraso, o volume máximo, o brilho da fita e o liga/desliga da cena
  *     podem ser alterados pelo web server (http://caixa.local ou 192.168.4.1).
  *
- * Placa:  ESP32S3 Dev Module (Arduino-ESP32 core 3.x)
+ * Placa:  ESP32S3 Dev Module ou ESP32C3 Dev Module (Arduino-ESP32 core 3.x)
+ *         Os pinos da fita são escolhidos automaticamente conforme a placa.
  * Libs:   nenhuma além do core
  */
 
@@ -26,9 +27,16 @@
 #define PIN_BUZZER      4    // Buzzer passivo (PWM)
 // Fita LED RGB não endereçável com V+ comum (pinos R, G, B, V+):
 // cada cor é ligada ao GND por um MOSFET canal N (HIGH = cor acesa)
+#if CONFIG_IDF_TARGET_ESP32C3
+// No ESP32-C3 os GPIO12-17 são da memória flash; use GPIOs livres
+#define PIN_FITA_R      6    // Gate do MOSFET do vermelho
+#define PIN_FITA_G      7    // Gate do MOSFET do verde
+#define PIN_FITA_B      10   // Gate do MOSFET do azul
+#else
 #define PIN_FITA_R      15   // Gate do MOSFET do vermelho
 #define PIN_FITA_G      16   // Gate do MOSFET do verde
 #define PIN_FITA_B      17   // Gate do MOSFET do azul
+#endif
 
 // Com INPUT_PULLUP: trava fechada encosta no contato ligado ao GND -> LOW.
 // Se usar um sensor que funcione ao contrário, troque para HIGH.
